@@ -49,6 +49,15 @@ function categoryFor(product: CatalogueProduct): string {
   return "Confectionery Machinery";
 }
 
+function previewImage(product: CatalogueProduct, master?: MasterProduct): string {
+  const images = Array.isArray(product.images) ? product.images.filter(Boolean) : [];
+  // Page 07 is the catalogue index/overview image and is shared by many
+  // products. Prefer the product's own detail-page image so hover previews
+  // actually identify the machine being hovered.
+  const specific = images.find((image) => !/page-0*7\.(jpe?g|png|webp)$/i.test(image));
+  return specific ?? images[0] ?? master?.image ?? "https://www.khandabi.com/images/prolist/1.jpg";
+}
+
 export const machines: Machine[] = catalogueExport.products.map((product: CatalogueProduct, index) => {
   const master = masterBySlug.get(product.slug);
   const pages = product.catalog_pages;
@@ -62,9 +71,7 @@ export const machines: Machine[] = catalogueExport.products.map((product: Catalo
     category: categoryFor(product),
     type: "machine",
     description: product.details,
-    // Prefer the image exported for THIS catalogue product. The old master image
-    // fallback was causing many products to show the same machine in the preview.
-    image: catalogueImages[0] ?? master?.image ?? "https://www.khandabi.com/images/prolist/1.jpg",
+    image: previewImage(product, master),
     catalogueImages,
     cataloguePage: pages[0] ?? null,
     cataloguePages: pages,
