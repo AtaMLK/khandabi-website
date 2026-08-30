@@ -14,6 +14,14 @@ export default async function MachineryPage({ params }: { params: Promise<{ slug
 
   const related = machines.filter((item) => item.category === machine.category && item.slug !== machine.slug).slice(0, 6);
   const verifiedCapacity = machine.technical.capacity;
+  const technicalRows = [
+    ["Capacity", machine.technical.capacity],
+    ["Dimensions", machine.technical.dimensions],
+    ["Power", machine.technical.power],
+    ["Utilities", machine.technical.utilities],
+    ["Materials", machine.technical.materials],
+    ["Options", machine.technical.options.length ? machine.technical.options.join(", ") : null],
+  ] as const;
 
   return (
     <main className="min-h-screen bg-[#f3f1ec] text-[#111820]">
@@ -41,24 +49,57 @@ export default async function MachineryPage({ params }: { params: Promise<{ slug
           <div className="border-t border-black/15">
             <div className="grid gap-8 border-b border-black/15 py-8 md:grid-cols-[180px_1fr]"><span className="text-[10px] font-bold uppercase tracking-[.18em] text-black/40">Overview</span><p className="text-xl leading-8">{machine.description}</p></div>
             {verifiedCapacity && <div className="grid gap-8 border-b border-black/15 py-8 md:grid-cols-[180px_1fr]"><span className="text-[10px] font-bold uppercase tracking-[.18em] text-black/40">Capacity</span><p className="text-2xl font-medium">{verifiedCapacity}</p></div>}
-            <div className="grid gap-8 border-b border-black/15 py-8 md:grid-cols-[180px_1fr]"><span className="text-[10px] font-bold uppercase tracking-[.18em] text-black/40">Catalogue</span><p className="text-sm leading-7 text-black/60">Source page {machine.cataloguePage ?? "—"}. Technical values are shown only where the current source material supports them.</p></div>
+            <div className="grid gap-8 border-b border-black/15 py-8 md:grid-cols-[180px_1fr]"><span className="text-[10px] font-bold uppercase tracking-[.18em] text-black/40">Catalogue source</span><p className="text-sm leading-7 text-black/60">Source page{machine.cataloguePages.length > 1 ? "s" : ""} {machine.cataloguePages.length ? machine.cataloguePages.join(", ") : "—"}. Technical values are shown only where the current source material supports them.</p></div>
           </div>
         </div>
       </section>
 
       <section className="border-y border-black/10 bg-white px-6 py-20 md:px-10 md:py-28">
         <div className="flex flex-col justify-between gap-8 md:flex-row md:items-end"><div><p className="text-[10px] font-bold uppercase tracking-[.25em] text-[#e76f32]">02 / Technical data</p><h2 className="mt-5 text-[clamp(3rem,6vw,6rem)] font-medium leading-[.82] tracking-[-.07em]">SPECIFICATIONS.</h2></div><p className="max-w-md text-sm leading-7 text-black/50">Only source-backed values are published. Empty fields remain intentionally unfilled until Khandabi documentation confirms them.</p></div>
-        <div className="mt-14 grid border-l border-t border-black/10 sm:grid-cols-2 lg:grid-cols-4">
-          {[['Capacity', machine.technical.capacity], ['Dimensions', machine.technical.dimensions], ['Power', machine.technical.power], ['Utilities', machine.technical.utilities], ['Materials', machine.technical.materials], ['Options', machine.technical.options.length ? machine.technical.options.join(', ') : null]].map(([label, value]) => <div key={label} className="min-h-32 border-b border-r border-black/10 p-6"><span className="text-[10px] font-bold uppercase tracking-[.18em] text-black/35">{label}</span><p className="mt-6 text-base">{value || "Not specified in current source"}</p></div>)}
+        <div className="mt-14 grid border-l border-t border-black/10 sm:grid-cols-2 lg:grid-cols-3">
+          {technicalRows.map(([label, value]) => <div key={label} className="min-h-32 border-b border-r border-black/10 p-6"><span className="text-[10px] font-bold uppercase tracking-[.18em] text-black/35">{label}</span><p className="mt-6 text-base">{value || "Not specified in current source"}</p></div>)}
         </div>
       </section>
 
+      {machine.catalogueImages.length > 0 && (
+        <section className="px-6 py-20 md:px-10 md:py-28">
+          <div className="flex flex-col justify-between gap-8 md:flex-row md:items-end">
+            <div><p className="text-[10px] font-bold uppercase tracking-[.25em] text-[#e76f32]">03 / Catalogue</p><h2 className="mt-5 text-[clamp(3rem,6vw,6rem)] font-medium leading-[.82] tracking-[-.07em]">SOURCE MATERIAL.</h2></div>
+            <p className="max-w-md text-sm leading-7 text-black/50">Original catalogue references attached to this machine. Pages are preserved as source references rather than replaced with inferred specifications.</p>
+          </div>
+          <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {machine.catalogueImages.map((src, index) => (
+              <figure key={`${src}-${index}`} className="group overflow-hidden bg-black/5">
+                <img src={src} alt={`${machine.title} catalogue reference ${index + 1}`} className="aspect-[4/3] w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" loading="lazy" />
+                <figcaption className="flex justify-between border-x border-b border-black/10 px-4 py-3 text-[9px] font-bold uppercase tracking-[.15em] text-black/40"><span>Reference {String(index + 1).padStart(2, "0")}</span><span>{machine.cataloguePages[index] ? `Page ${machine.cataloguePages[index]}` : "Catalogue"}</span></figcaption>
+              </figure>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {machine.applications.length > 0 && (
+        <section className="border-y border-black/10 bg-[#ebe7df] px-6 py-20 md:px-10 md:py-28">
+          <p className="text-[10px] font-bold uppercase tracking-[.25em] text-[#e76f32]">04 / Applications</p>
+          <h2 className="mt-5 text-[clamp(3rem,6vw,6rem)] font-medium leading-[.82] tracking-[-.07em]">APPLICATIONS.</h2>
+          <div className="mt-12 grid border-l border-t border-black/10 sm:grid-cols-2 lg:grid-cols-3">{machine.applications.map((item, i) => <div key={item} className="border-b border-r border-black/10 p-7"><span className="text-[10px] text-[#e76f32]">{String(i + 1).padStart(2, "0")}</span><p className="mt-8 text-lg leading-7">{item}</p></div>)}</div>
+        </section>
+      )}
+
+      {machine.processSteps.length > 0 && (
+        <section className="px-6 py-20 md:px-10 md:py-28">
+          <p className="text-[10px] font-bold uppercase tracking-[.25em] text-[#e76f32]">05 / Process</p>
+          <h2 className="mt-5 text-[clamp(3rem,6vw,6rem)] font-medium leading-[.82] tracking-[-.07em]">PROCESS.</h2>
+          <div className="mt-12 border-t border-black/15">{machine.processSteps.map((step, i) => <div key={step} className="grid gap-6 border-b border-black/15 py-7 md:grid-cols-[80px_1fr]"><span className="text-sm text-[#e76f32]">{String(i + 1).padStart(2, "0")}</span><p className="text-xl leading-8">{step}</p></div>)}</div>
+        </section>
+      )}
+
       <section className="bg-[#111820] px-6 py-24 text-white md:px-10 md:py-32">
-        <div className="flex flex-col justify-between gap-8 md:flex-row md:items-end"><div><p className="text-[10px] font-bold uppercase tracking-[.25em] text-[#e76f32]">03 / Related</p><h2 className="mt-5 text-[clamp(3.5rem,7vw,7rem)] font-medium leading-[.82] tracking-[-.07em]">MORE FROM<br />{machine.category.toUpperCase()}.</h2></div><Link href="/machinery" className="text-[10px] font-bold uppercase tracking-[.18em] text-white/55 transition hover:text-[#e76f32]">View complete range →</Link></div>
+        <div className="flex flex-col justify-between gap-8 md:flex-row md:items-end"><div><p className="text-[10px] font-bold uppercase tracking-[.25em] text-[#e76f32]">06 / Related</p><h2 className="mt-5 text-[clamp(3.5rem,7vw,7rem)] font-medium leading-[.82] tracking-[-.07em]">MORE FROM<br />{machine.category.toUpperCase()}.</h2></div><Link href="/machinery" className="text-[10px] font-bold uppercase tracking-[.18em] text-white/55 transition hover:text-[#e76f32]">View complete range →</Link></div>
         <div className="mt-14 grid border-l border-t border-white/15 md:grid-cols-2 lg:grid-cols-3">{related.map((item, i) => <Link key={item.slug} href={`/machinery/${item.slug}`} className="group border-b border-r border-white/15 p-6 transition hover:bg-white/[.04] md:p-8"><span className="text-[10px] text-[#e76f32]">{String(i + 1).padStart(2, "0")}</span><h3 className="mt-12 min-h-16 text-xl font-medium leading-tight tracking-[-.025em]">{item.title}</h3><span className="mt-8 inline-block text-lg text-[#e76f32] transition-transform group-hover:translate-x-2">↗</span></Link>)}</div>
       </section>
 
-      <section className="bg-[#e76f32] px-6 py-24 md:px-10 md:py-32"><p className="text-[10px] font-bold uppercase tracking-[.25em] text-black/50">04 / Next step</p><div className="mt-10 flex flex-col justify-between gap-12 md:flex-row md:items-end"><h2 className="max-w-5xl text-[clamp(3.5rem,8vw,8rem)] font-medium leading-[.8] tracking-[-.07em]">TALK TO<br />KHANDABI.</h2><a href={`mailto:info@khandabi.com?subject=${encodeURIComponent(`Inquiry - ${machine.title}`)}`} className="w-fit border border-black/40 px-7 py-5 text-[10px] font-bold uppercase tracking-[.18em] transition hover:bg-black hover:text-white">Start an inquiry ↗</a></div></section>
+      <section className="bg-[#e76f32] px-6 py-24 md:px-10 md:py-32"><p className="text-[10px] font-bold uppercase tracking-[.25em] text-black/50">07 / Next step</p><div className="mt-10 flex flex-col justify-between gap-12 md:flex-row md:items-end"><h2 className="max-w-5xl text-[clamp(3.5rem,8vw,8rem)] font-medium leading-[.8] tracking-[-.07em]">TALK TO<br />KHANDABI.</h2><a href={`mailto:info@khandabi.com?subject=${encodeURIComponent(`Inquiry - ${machine.title}`)}`} className="w-fit border border-black/40 px-7 py-5 text-[10px] font-bold uppercase tracking-[.18em] transition hover:bg-black hover:text-white">Start an inquiry ↗</a></div></section>
 
       <footer className="flex flex-col justify-between gap-6 bg-black px-6 py-9 text-white md:flex-row md:items-center md:px-10"><Link href="/" className="text-xl font-black tracking-[-.04em]">KHANDABI<span className="text-[#e76f32]">.</span></Link><Link href="/machinery" className="text-[10px] uppercase tracking-[.18em] text-white/40 transition hover:text-white">All machinery →</Link><span className="text-[10px] uppercase tracking-[.18em] text-white/40">© Khandabi Machinery Co.</span></footer>
     </main>
