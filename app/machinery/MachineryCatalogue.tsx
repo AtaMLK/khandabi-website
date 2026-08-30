@@ -29,16 +29,8 @@ export default function MachineryCatalogue({ machines }: { machines: Machine[] }
     return GROUP_ORDER.filter((name) => map.has(name)).map((name) => ({ name, machines: map.get(name)! }));
   }, [machines]);
 
-  const [activeGroup, setActiveGroup] = useState(groups[0]?.name ?? "");
-  const [hovered, setHovered] = useState<Machine | null>(groups[0]?.machines[0] ?? null);
+  const [hovered, setHovered] = useState<Machine | null>(null);
   const [selected, setSelected] = useState<Machine | null>(null);
-
-  const active = groups.find((group) => group.name === activeGroup) ?? groups[0];
-
-  useEffect(() => {
-    if (!active) return;
-    setHovered(active.machines[0] ?? null);
-  }, [activeGroup]);
 
   useEffect(() => {
     if (!selected) return;
@@ -54,42 +46,55 @@ export default function MachineryCatalogue({ machines }: { machines: Machine[] }
     };
   }, [selected]);
 
+  const preview = hovered;
+
   return (
     <>
-      <section className="mx-4 border border-black/10 bg-[#f3f1ec] md:mx-10">
-        <div className="grid min-h-[680px] md:grid-cols-[230px_360px_minmax(0,1fr)]">
-          <aside className="border-b border-black/10 md:border-b-0 md:border-r">
-            <div className="sticky top-20 p-4 md:p-5">
-              <p className="px-3 pb-4 text-[9px] font-bold uppercase tracking-[.24em] text-[#e76f32]">Product groups</p>
-              <div className="flex gap-1 overflow-x-auto md:block md:overflow-visible">
-                {groups.map((group, index) => {
-                  const activeGroupClass = group.name === activeGroup;
-                  return (
-                    <button
-                      key={group.name}
-                      type="button"
-                      onClick={() => setActiveGroup(group.name)}
-                      className={`group flex min-w-[180px] items-center gap-3 px-3 py-3 text-left text-xs transition md:w-full ${activeGroupClass ? "bg-[#111820] text-white" : "text-black/55 hover:bg-black/5 hover:text-black"}`}
-                    >
-                      <span className={`text-[9px] ${activeGroupClass ? "text-[#e76f32]" : "text-black/25"}`}>{String(index + 1).padStart(2, "0")}</span>
-                      <span className="flex-1">{group.name}</span>
-                      <span className="text-[9px] opacity-50">{group.machines.length}</span>
-                    </button>
-                  );
-                })}
+      <section className="mx-4 border border-black/10 bg-white md:mx-10">
+        {/* The preview occupies its own row. It never floats over the catalogue, so the next machines remain visible and hoverable. */}
+        <div className={`overflow-hidden border-b border-black/10 bg-[#111820] text-white transition-[max-height,opacity] duration-300 ${preview ? "max-h-[430px] opacity-100" : "max-h-0 opacity-0"}`}>
+          {preview && (
+            <div className="grid min-h-[300px] md:grid-cols-[42%_1fr]">
+              <div className="relative min-h-[260px] overflow-hidden bg-[#151a20]">
+                <img src={preview.image} alt={preview.title} className="absolute inset-0 h-full w-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                <div className="absolute bottom-5 left-6 right-6 flex justify-between gap-4 text-[9px] uppercase tracking-[.2em] text-white/65">
+                  <span>KHANDABI / MACHINERY</span>
+                  <span>{preview.cataloguePages.length ? `CATALOGUE ${preview.cataloguePages.join(" / ")}` : ""}</span>
+                </div>
+              </div>
+              <div className="flex flex-col justify-between p-7 md:p-9">
+                <div>
+                  <p className="text-[9px] font-bold uppercase tracking-[.22em] text-[#e76f32]">{preview.category}</p>
+                  <h3 className="mt-3 max-w-3xl text-[clamp(2rem,4vw,4.5rem)] font-medium leading-[.85] tracking-[-.06em]">{preview.title}</h3>
+                  <p className="mt-5 max-w-3xl text-sm leading-6 text-white/60">{preview.description}</p>
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    <span className="border border-white/10 px-3 py-2 text-[9px] uppercase tracking-[.15em] text-white/55">Capacity: {preview.technical.capacity || "Catalogue not specified"}</span>
+                    <span className="border border-white/10 px-3 py-2 text-[9px] uppercase tracking-[.15em] text-white/55">Catalogue: {preview.cataloguePages.length ? preview.cataloguePages.join(" / ") : "—"}</span>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-3 pt-6">
+                  <button type="button" onClick={() => setSelected(preview)} className="bg-[#e76f32] px-5 py-3 text-[9px] font-bold uppercase tracking-[.18em] transition hover:bg-white hover:text-black">Quick view</button>
+                  <Link href={`/machinery/${preview.slug}`} className="border border-white/20 px-5 py-3 text-[9px] font-bold uppercase tracking-[.18em] transition hover:bg-white hover:text-black">Full product →</Link>
+                </div>
               </div>
             </div>
-          </aside>
+          )}
+        </div>
 
-          <div className="border-b border-black/10 md:border-b-0 md:border-r">
-            <div className="border-b border-black/10 px-5 py-5">
-              <p className="text-[9px] uppercase tracking-[.2em] text-black/35">Selected group</p>
-              <h3 className="mt-2 text-2xl font-medium tracking-[-.04em]">{active?.name}</h3>
-              <p className="mt-2 text-[11px] leading-5 text-black/45">{active?.machines.length} products · hover to preview · click to open</p>
-            </div>
-            <div className="max-h-[620px] overflow-y-auto">
-              {active?.machines.map((machine, index) => {
-                const isHovered = hovered?.slug === machine.slug;
+        {groups.map((group, groupIndex) => (
+          <section key={group.name} className="border-b border-black/10 last:border-b-0">
+            <header className="flex items-end justify-between gap-6 bg-[#f3f1ec] px-5 py-5 md:px-7">
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-[.24em] text-[#e76f32]">{String(groupIndex + 1).padStart(2, "0")} / Product group</p>
+                <h3 className="mt-2 text-2xl font-medium tracking-[-.04em] md:text-3xl">{group.name}</h3>
+              </div>
+              <span className="text-[9px] uppercase tracking-[.18em] text-black/35">{group.machines.length} products</span>
+            </header>
+
+            <div className="grid grid-cols-1 md:grid-cols-2">
+              {group.machines.map((machine, index) => {
+                const isHovered = preview?.slug === machine.slug;
                 return (
                   <button
                     type="button"
@@ -97,46 +102,23 @@ export default function MachineryCatalogue({ machines }: { machines: Machine[] }
                     onMouseEnter={() => setHovered(machine)}
                     onFocus={() => setHovered(machine)}
                     onClick={() => setSelected(machine)}
-                    className={`group flex min-h-[82px] w-full items-center border-b border-black/10 px-5 text-left transition ${isHovered ? "bg-[#e7e3da]" : "hover:bg-[#ebe7df]"}`}
+                    className={`group flex min-h-[78px] w-full items-center border-t border-black/10 px-5 text-left transition md:min-h-[88px] md:px-7 ${isHovered ? "bg-[#e7e3da]" : "hover:bg-[#f5f2ec]"}`}
                   >
-                    <span className="w-7 shrink-0 text-[9px] tabular-nums text-[#e76f32]">{String(index + 1).padStart(2, "0")}</span>
-                    <span className="flex-1 px-3 text-[13px] font-medium leading-5">{machine.title}</span>
-                    <span className={`text-[#e76f32] transition ${isHovered ? "translate-x-1 opacity-100" : "opacity-30"}`}>↗</span>
+                    <span className="w-8 shrink-0 text-[9px] tabular-nums text-[#e76f32]">{String(index + 1).padStart(2, "0")}</span>
+                    <span className="flex-1 px-3 text-[12px] font-medium leading-5 md:text-[13px]">{machine.title}</span>
+                    <span className={`text-[#e76f32] transition ${isHovered ? "translate-x-1 opacity-100" : "opacity-25 group-hover:translate-x-1 group-hover:opacity-100"}`}>↗</span>
                   </button>
                 );
               })}
             </div>
-          </div>
-
-          <div className="hidden bg-[#111820] text-white md:block">
-            {hovered ? (
-              <div className="sticky top-20 flex min-h-[680px] flex-col">
-                <div className="relative min-h-[330px] overflow-hidden bg-[#151a20]">
-                  <img src={hovered.image} alt={hovered.title} className="absolute inset-0 h-full w-full object-cover transition duration-500" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent" />
-                  <div className="absolute bottom-5 left-6 right-6 flex justify-between gap-4 text-[9px] uppercase tracking-[.2em] text-white/65"><span>KHANDABI / MACHINERY</span><span>{hovered.cataloguePages.length ? `CATALOGUE ${hovered.cataloguePages.join(" / ")}` : ""}</span></div>
-                </div>
-                <div className="flex flex-1 flex-col justify-between p-7 md:p-9">
-                  <div>
-                    <p className="text-[9px] font-bold uppercase tracking-[.22em] text-[#e76f32]">{hovered.category}</p>
-                    <h3 className="mt-4 text-[clamp(2.5rem,4vw,5rem)] font-medium leading-[.84] tracking-[-.065em]">{hovered.title}</h3>
-                    <div className="mt-6 h-px w-12 bg-[#e76f32]" />
-                    <p className="mt-5 max-w-xl text-sm leading-6 text-white/60">{hovered.description}</p>
-                    <div className="mt-7 grid grid-cols-2 border border-white/10">
-                      <div className="border-r border-white/10 p-4"><span className="text-[8px] uppercase tracking-[.16em] text-white/35">Capacity</span><p className="mt-2 text-sm">{hovered.technical.capacity || "Not specified in catalogue"}</p></div>
-                      <div className="p-4"><span className="text-[8px] uppercase tracking-[.16em] text-white/35">Source</span><p className="mt-2 text-sm">{hovered.cataloguePage ? `Catalogue p.${hovered.cataloguePage}` : "Catalogue"}</p></div>
-                    </div>
-                    {hovered.applications.length > 0 && <div className="mt-6"><span className="text-[8px] uppercase tracking-[.16em] text-white/35">Applications</span><p className="mt-2 text-xs leading-5 text-white/55">{hovered.applications.join(" · ")}</p></div>}
-                  </div>
-                  <div className="flex flex-wrap gap-3 pt-8"><button type="button" onClick={() => setSelected(hovered)} className="bg-[#e76f32] px-5 py-3 text-[9px] font-bold uppercase tracking-[.18em] transition hover:bg-white hover:text-black">Quick view</button><Link href={`/machinery/${hovered.slug}`} className="border border-white/20 px-5 py-3 text-[9px] font-bold uppercase tracking-[.18em] transition hover:bg-white hover:text-black">Full product →</Link></div>
-                </div>
-              </div>
-            ) : <div className="flex h-full items-center justify-center text-xs text-white/30">Select a product</div>}
-          </div>
-        </div>
+          </section>
+        ))}
       </section>
 
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-4 px-4 md:px-10"><p className="text-[10px] uppercase tracking-[.16em] text-black/35">{machines.length} catalogue products · grouped for faster technical discovery</p><a href="https://exhibitor-manual-004.s3.ap-south-1.amazonaws.com/Production/exb_doc/2016/21901/catalogue-te_966885.pdf" target="_blank" rel="noreferrer" className="border border-black/20 px-5 py-3 text-[9px] font-bold uppercase tracking-[.18em] transition hover:bg-[#111820] hover:text-white">Download machinery catalogue ↗</a></div>
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-4 px-4 md:px-10">
+        <p className="text-[10px] uppercase tracking-[.16em] text-black/35">{machines.length} catalogue products · grouped by machine family</p>
+        <a href="https://exhibitor-manual-004.s3.ap-south-1.amazonaws.com/Production/exb_doc/2016/21901/catalogue-te_966885.pdf" target="_blank" rel="noreferrer" className="border border-black/20 px-5 py-3 text-[9px] font-bold uppercase tracking-[.18em] transition hover:bg-[#111820] hover:text-white">Download machinery catalogue ↗</a>
+      </div>
 
       {selected && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/55 px-4 py-6 backdrop-blur-sm" role="dialog" aria-modal="true" onClick={(event) => { if (event.target === event.currentTarget) setSelected(null); }}>
