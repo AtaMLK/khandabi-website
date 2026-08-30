@@ -1,0 +1,20 @@
+import Link from "next/link";
+
+const applications = [
+  { no: "01", title: "Chocolate", text: "Cooking, storage, coating, enrobing, bar forming and chocolate dragee systems.", products: "Enrobers · Coating & Cooling · Chocolate Tanks · Choco Bar Lines · Dragee Systems" },
+  { no: "02", title: "Candy", text: "Cooking, forming, cooling and finishing equipment for confectionery production.", products: "Continuous Cookers · Vacuum Cookers · Batch Cookers · Nougat · Candy Systems" },
+  { no: "03", title: "Bars", text: "Complete production concepts for chocolate, cereal, nut, protein and sesame-based bars.", products: "Extruder Lines · Drum Systems · Slitting & Dividing · Guillotine · Sesame Bar" },
+  { no: "04", title: "Dragee & Gum", text: "Coating, forming and production systems for dragee and gum applications.", products: "Dragee Pans · Chocolate Dragee · Gum Forming · Gum Production Line" },
+  { no: "05", title: "Halva & Sesame", text: "Cooking, aeration, mixing and forming solutions for halva and sesame products.", products: "Halva Cooker · Halva Forming Line · Sesame Mixers · Sesame Bar Line" },
+  { no: "06", title: "Fondant & Caramel", text: "Preparation and processing equipment for fondant, caramel and related confectionery products.", products: "Fondant Machines · Caramel Dough Mixer · Syrup Preparation · Cooking Systems" },
+  { no: "07", title: "Laboratory / R&D", text: "Small-scale equipment for development, trials and laboratory confectionery processes.", products: "Lab Cooker · Lab Conche · Lab Coating · Lab Ball Mill · Lab Mixer" },
+];
+
+export default function ApplicationsPage() {
+  return <main className="min-h-screen bg-[#f3f1ec] text-[#111820]">
+    <nav className="flex h-20 items-center justify-between border-b border-black/10 px-6 md:px-10"><Link href="/" className="text-xl font-black tracking-[-.04em]">KHANDABI<span className="text-[#e76f32]">.</span></Link><div className="flex items-center gap-6 text-[10px] font-bold uppercase tracking-[.18em]"><Link href="/machinery">Machinery</Link><Link href="/customers">Customers</Link><Link href="/exhibitions">Exhibitions</Link><Link href="/">Home</Link></div></nav>
+    <header className="px-6 pb-20 pt-20 md:px-10 md:pb-28 md:pt-28"><p className="text-[10px] font-bold uppercase tracking-[.25em] text-[#e76f32]">Applications</p><h1 className="mt-6 max-w-6xl text-[clamp(4rem,9vw,9rem)] font-medium leading-[.78] tracking-[-.075em]">WHAT ARE YOU<br /><span className="text-[#e76f32]">MAKING?</span></h1><p className="mt-10 max-w-2xl text-base leading-7 text-black/55">Start with the product you manufacture, then move into the machinery and complete systems that support that process.</p></header>
+    <section className="border-t border-black/10">{applications.map((application) => <article key={application.no} className="grid border-b border-black/10 px-6 py-10 transition hover:bg-[#e7e3da] md:grid-cols-[80px_1fr_1fr_80px] md:px-10"><span className="text-[10px] font-bold text-[#e76f32]">{application.no}</span><h2 className="text-4xl font-medium tracking-[-.05em] md:text-6xl">{application.title}</h2><div className="mt-5 md:mt-0"><p className="max-w-lg text-sm leading-7 text-black/55">{application.text}</p><p className="mt-5 text-[9px] uppercase tracking-[.14em] text-black/35">{application.products}</p></div><Link href="/machinery" className="mt-8 text-[9px] font-bold uppercase tracking-[.18em] text-[#e76f32] md:mt-0 md:text-right">Explore →</Link></article>)}</section>
+    <section className="bg-[#111820] px-6 py-24 text-white md:px-10 md:py-32"><p className="text-[10px] font-bold uppercase tracking-[.25em] text-[#e76f32]">The Khandabi approach</p><h2 className="mt-6 max-w-6xl text-[clamp(3.5rem,8vw,8rem)] font-medium leading-[.82] tracking-[-.07em]">FROM MACHINE<br /><span className="text-[#e76f32]">TO COMPLETE LINE.</span></h2><p className="mt-10 max-w-xl text-sm leading-7 text-white/50">Applications answer the customer's first question — what can I make? The machinery and production-line sections answer the next one — how do I produce it?</p></section>
+  </main>;
+}
