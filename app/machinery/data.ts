@@ -52,6 +52,7 @@ function categoryFor(product: CatalogueProduct): string {
 export const machines: Machine[] = catalogueExport.products.map((product: CatalogueProduct, index) => {
   const master = masterBySlug.get(product.slug);
   const pages = product.catalog_pages;
+  const catalogueImages = Array.isArray(product.images) ? product.images.filter(Boolean) : [];
   return {
     id: master?.id ?? `KH-C-${String(index + 1).padStart(2, "0")}`,
     slug: product.slug,
@@ -61,8 +62,10 @@ export const machines: Machine[] = catalogueExport.products.map((product: Catalo
     category: categoryFor(product),
     type: "machine",
     description: product.details,
-    image: master?.image ?? "https://www.khandabi.com/images/prolist/1.jpg",
-    catalogueImages: product.images,
+    // Prefer the image exported for THIS catalogue product. The old master image
+    // fallback was causing many products to show the same machine in the preview.
+    image: catalogueImages[0] ?? master?.image ?? "https://www.khandabi.com/images/prolist/1.jpg",
+    catalogueImages,
     cataloguePage: pages[0] ?? null,
     cataloguePages: pages,
     verificationState: "official-catalogue",
